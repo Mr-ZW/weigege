@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:rabbit="http://www.springframework.org/schema/rabbit"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/rabbit http://www.springframework.org/schema/rabbit/spring-rabbit.xsd">
+
+    <!-- 配置连接工厂 -->
+    <rabbit:connection-factory id="connectionFactory" host="${mq.host}"
+                               port="${mq.port}"    username="${mq.username}"   password="${mq.password}"/>
+
+    <!-- 配置管理 -->
+    <rabbit:admin connection-factory="connectionFactory"/>
+
+    <!-- 配置交换机 -->
+    <rabbit:topic-exchange name="amqp.topic" durable="true" auto-delete="false" >
+        <rabbit:bindings>
+            <rabbit:binding pattern="#.queue_email" queue="queue_email"></rabbit:binding>
+        </rabbit:bindings>
+    </rabbit:topic-exchange>
+
+    <!-- 声明RabbitMQ Template -->
+    <rabbit:template id="rabbitTemplate" exchange="amqp.topic" connection-factory="connectionFactory"/>
+
+    <!-- 定义队列 -->
+    <rabbit:queue id="queue_email" name="queue_email" durable="true" auto-delete="false" exclusive="false" />
+
+    <!-- 定义队列监听 -->
+    <rabbit:listener-container connection-factory="connectionFactory">
+        <rabbit:listener ref="consumer" queues="queue_email"/>
+    </rabbit:listener-container>
+
+    <!-- 定义消费者 -->
+    <bean id="consumer" class="com.weigege.ssm.service.MessageConsumer"/>
+
+</beans>
