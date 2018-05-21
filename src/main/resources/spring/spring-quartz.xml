@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!-- 线程执行器配置，用于任务注册 -->
+    <bean id="executor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor">
+        <property name="corePoolSize" value="10" />
+        <property name="maxPoolSize" value="100" />
+        <property name="queueCapacity" value="500" />
+    </bean>
+
+    <!-- 业务对象 -->
+    <bean id="testJobTask" class="com.weigege.ssm.job.FirstJob" />
+    <bean id="testJobTask2" class="com.weigege.ssm.job.SecondJob" />
+
+    <!-- 调度业务 -->
+    <bean id="jobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject" ref="testJobTask" />
+        <property name="targetMethod" value="execute" />
+    </bean>
+
+    <bean id="jobDetail1" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject" ref="testJobTask2" />
+        <property name="targetMethod" value="execute" />
+    </bean>
+
+    <!-- 增加调用的触发器，触发时间 -->
+    <bean id="cronTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="jobDetail" />
+        <property name="cronExpression" value="0/60 * * * * ? *" />
+    </bean>
+
+    <!-- 增加调用的触发器，触发时间 -->
+    <!--<bean id="cronTrigger1" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">-->
+        <!--<property name="jobDetail" ref="jobDetail1" />-->
+        <!--<property name="cronExpression" value="0/5 * * * * ? *" />-->
+    <!--</bean>-->
+
+    <!-- 设置调度 -->
+    <bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+        <property name="triggers">
+            <list>
+                <ref bean="cronTrigger" />
+                <!--<ref bean="cronTrigger1" />-->
+            </list>
+        </property>
+        <property name="taskExecutor" ref="executor" />
+    </bean>
+
+</beans>
